@@ -6,4 +6,6 @@ urlpatterns = [
     path('department-user-log/', views.DepartmentUserLogList.as_view(), name='department_user_log_list'),
     path('user-accounts/', views.UserAccounts.as_view(), name='user_accounts'),
     path('user-accounts/export/', views.UserAccountsExport.as_view(), name='user_accounts_export'),
+    # Experimental:
+    path('address-book-sockpuppet/', views.AddressbookSockPuppetView.as_view(), name='address_book_sockpuppet'),
 ]

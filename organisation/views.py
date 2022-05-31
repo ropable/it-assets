@@ -14,6 +14,15 @@ from .utils import title_except
 decorators = [xframe_options_exempt, csp_exempt]
 
 
+class AddressbookSockPuppetView(TemplateView):
+    template_name = 'addressbook_sockpuppet.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['count'] = 0
+        return context
+
+
 @method_decorator(decorators, name='dispatch')
 class AddressBook(TemplateView):
     template_name = 'organisation/address_book.html'

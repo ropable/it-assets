@@ -1,0 +1,12 @@
+{% load static %}
+<head>
+    <script src="{% static 'sockpuppet/sockpuppet.js' %}"></script>
+</head>
+<body>
+    <a
+      href="#"
+      data-reflex="click->AddressbookReflex#increment"
+      data-count="{{ count }}"
+    >Increment </a><span>{{ count }}</span>
+
+</body>

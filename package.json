@@ -1,0 +1,32 @@
+{
+  "name": "it-assets",
+  "version": "1.0.0",
+  "description": "This project consists of a Django application used by the Department of Biodiversity, Conservation and Attractions to record and manage IT assets and analytics.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --mode production",
+    "watch": "webpack --watch --info-verbosity verbose"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ropable/it-assets.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ropable/it-assets/issues"
+  },
+  "homepage": "https://github.com/ropable/it-assets#readme",
+  "devDependencies": {
+    "fs": "^0.0.1-security",
+    "glob": "^8.0.3",
+    "path": "^0.12.7",
+    "sockpuppet-js": "^0.6.0",
+    "stimulus": "^3.0.1",
+    "stimulus_reflex": "^3.5.0-pre9",
+    "webpack": "^5.72.1",
+    "webpack-cli": "^4.9.2"
+  }
+}

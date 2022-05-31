@@ -50,6 +50,9 @@ INSTALLED_APPS = (
     'nginx',
     'rancher',
     'bigpicture',
+    # Experimental:
+    'channels',
+    'sockpuppet',
 )
 
 MIDDLEWARE = [
@@ -203,7 +206,10 @@ DATABASES = {
 # Static files configuration
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'itassets', 'static'),)
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'itassets', 'static'),
+    ("js", f"{BASE_DIR}/dist/js"),
+)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 WHITENOISE_ROOT = STATIC_ROOT
 # Ensure that the media directory exists:
@@ -304,3 +310,11 @@ CSP_DEFAULT_SRC = (
     "cdn.jsdelivr.net",
     "code.jquery.com",
 )
+
+# Channel layer
+ASGI_APPLICATION = 'sockpuppet.routing.application'
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
