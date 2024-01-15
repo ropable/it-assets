@@ -28,7 +28,7 @@ whitenoise = {version = "6.6.0", extras = ["brotli"]}
 pysftp = "0.2.9"
 azure-storage-blob = "12.19.0"
 django-storages = {version = "1.14.2", extras = ["azure"]}
-sentry-sdk = "1.39.1"
+sentry-sdk = "1.39.2"
 tomli = "2.0.1"
 xlsxwriter = "3.1.9"
 
