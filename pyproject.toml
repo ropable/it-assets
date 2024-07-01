@@ -16,7 +16,7 @@ dj-database-url = "2.2.0"
 gunicorn = "22.0.0"
 unicodecsv = "0.14.1"
 python-dateutil = "2.8.2"
-webtemplate-dbca = "1.7.0"
+webtemplate-dbca = "1.7.1"
 mixer = "7.2.2"
 msal = "1.29.0"
 whitenoise = {version = "6.7.0", extras = ["brotli"]}
