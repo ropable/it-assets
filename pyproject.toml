@@ -22,7 +22,7 @@ dependencies = [
   "msal==1.32.0",
   "whitenoise[brotli]==6.9.0",
   "pysftp==0.2.9",
-  "xlsxwriter==3.2.2",
+  "xlsxwriter==3.2.3",
   "sentry-sdk[django]==2.24.1",
   "redis==5.2.1",
   "django-storages[azure]==1.14.5",
