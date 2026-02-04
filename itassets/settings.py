@@ -8,6 +8,7 @@ import dj_database_url
 from dbca_utils.utils import env
 from django.core.exceptions import DisallowedHost
 from django.db.utils import OperationalError
+from psycopg.errors import FdwUnableToCreateExecution, FdwUnableToCreateReply
 from redis.exceptions import ConnectionError, TimeoutError
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -287,6 +288,9 @@ def sentry_excluded_exceptions(event, hint):
             return None
         # Exclude Redis service connection or timeout errors.
         elif hint["exc_info"][0] in [ConnectionError, TimeoutError]:
+            return None
+        # Exclude exceptions relating to creating a connection with the foreign database wrapper.
+        elif hint["exc_info"][0] in [FdwUnableToCreateExecution, FdwUnableToCreateReply]:
             return None
 
     return event
