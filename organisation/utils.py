@@ -53,10 +53,16 @@ def title_except(s: str, exceptions: Optional[Iterable[str]] = None, acronyms: O
         )
     words = s.split()
 
+    # Case: first word of the title starts with 'A/'.
     if words[0].startswith("A/"):
-        words_title = ["A/" + words[0].replace("A/", "").capitalize()]
+        if words[0].replace("A/", "") in acronyms:
+            words_title = [words[0]]
+        else:
+            words_title = ["A/" + words[0].replace("A/", "").capitalize()]
+    # Leave acronyms all-caps.
     elif words[0] in acronyms:
         words_title = [words[0]]
+    # All other words, capitalize.
     else:
         words_title = [words[0].capitalize()]
 

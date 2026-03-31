@@ -21,6 +21,7 @@ class UtilsTest(TestCase):
         self.assertEqual(title_except("A/MANAGER"), "A/Manager")
         self.assertEqual(title_except("MANAGER OIM"), "Manager OIM")
         self.assertEqual(title_except("MANAGER, AUDIT AND RISK"), "Manager, Audit and Risk")
+        self.assertEqual(title_except("A/OIM COORDINATOR"), "A/OIM Coordinator")
         self.assertEqual(
             title_except("A/SENIOR CONSERVATION OFFICER (Planning and Operations)"),
             "A/Senior Conservation Officer (Planning and Operations)",
