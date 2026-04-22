@@ -227,7 +227,7 @@ def ms_graph_get_user(azure_guid: str, token: Optional[dict] = None) -> Dict | N
         "ConsistencyLevel": "eventual",
     }
     params = {
-        "$select": "id,mail,userPrincipalName,displayName,givenName,surname,employeeId,employeeType,jobTitle,businessPhones,mobilePhone,department,companyName,officeLocation,proxyAddresses,accountEnabled,onPremisesSyncEnabled,onPremisesSamAccountName,lastPasswordChangeDateTime,assignedLicenses,createdDateTime",
+        "$select": "id,mail,userPrincipalName,displayName,givenName,surname,employeeId,employeeType,jobTitle,businessPhones,mobilePhone,department,companyName,officeLocation,proxyAddresses,accountEnabled,onPremisesSyncEnabled,onPremisesSamAccountName,usageLocation,lastPasswordChangeDateTime,assignedLicenses,createdDateTime",
         "$expand": "manager($select=id,mail)",
     }
     url = f"https://graph.microsoft.com/v1.0/users/{azure_guid}"
