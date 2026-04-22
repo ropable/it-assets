@@ -50,6 +50,7 @@ def title_except(s: str, exceptions: Optional[Iterable[str]] = None, acronyms: O
             "ARP",
             "WA",
             "HR",
+            "EPBC",
         )
     words = s.split()
 
