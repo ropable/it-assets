@@ -11,10 +11,10 @@ from django.core.mail import EmailMultiAlternatives
 from django.utils import timezone
 from psycopg import Connection, connect, sql
 
-from itassets.utils import ms_graph_client_token, ms_graph_get_user
+from itassets.utils import ms_graph_client_token
 from organisation.microsoft_products import MS_PRODUCTS
 from organisation.models import AscenderActionLog, CostCentre, DepartmentUser, DepartmentUserLog, Location
-from organisation.utils import generate_password, ms_graph_get_subscribed_sku, ms_graph_validate_password, title_except
+from organisation.utils import generate_password, ms_graph_get_subscribed_sku, ms_graph_get_user, ms_graph_validate_password, title_except
 
 LOGGER = logging.getLogger("organisation")
 DATE_MAX = date(2049, 12, 31)
