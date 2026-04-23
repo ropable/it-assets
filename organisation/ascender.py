@@ -872,12 +872,30 @@ def create_entra_id_user(
     user_has_usage_location = False
     graph_user = None
     timestamp = datetime.now()
+    retry_delay = 1
     for _ in range(10):
-        graph_user = ms_graph_get_user(guid, token)
-        if graph_user and "usageLocation" in graph_user and graph_user["usageLocation"] == "AU":
-            user_has_usage_location = True
-            break
-        sleep(1)  # Add a delay between calls to the Graph API.
+        try:
+            graph_user = ms_graph_get_user(guid, token)
+        except (requests.exceptions.HTTPError, requests.exceptions.RequestException) as exc:
+            graph_user = None
+            response = getattr(exc, "response", None)
+            if response is not None and response.status_code == 429:
+                # Honour `Retry-After` for 429 responses
+                retry_after = response.headers.get("Retry-After")
+                if retry_after:
+                    try:
+                        retry_delay = max(int(retry_after), 1)
+                    except (TypeError, ValueError):
+                        retry_delay = 1
+            LOGGER.warning(
+                f"Transient error querying MS Graph API for user GUID {guid}; retrying in {retry_delay} second(s)",
+                exc_info=True,
+            )
+        else:
+            if graph_user and "usageLocation" in graph_user and graph_user["usageLocation"] == "AU":
+                user_has_usage_location = True
+                break
+        sleep(retry_delay)  # Add a delay between calls to the Graph API.
         LOGGER.info(f"Repeat query to MS Graph API for user GUID {guid}")
         timestamp = datetime.now()
 
@@ -886,10 +904,16 @@ def create_entra_id_user(
         log = f"Create new Entra ID user failed at assign license step for {email}, usageLocation field value not set"
         AscenderActionLog.objects.create(level="WARNING", log=log, ascender_data=job)
         LOGGER.warning(log)
+        redacted_graph_user = {
+            "id": graph_user["id"],
+            "userPrincipalName": graph_user["userPrincipalName"],
+            "usageLocation": graph_user["usageLocation"],
+            "createdDateTime": graph_user["createdDateTime"],
+        }
         text_content = f"""Ascender record:\n
         {job}\n
         Microsoft Graph API user:\n
-        {graph_user}\n
+        {redacted_graph_user}\n
         Query timestamp: {timestamp.isoformat()}"""
         msg = EmailMultiAlternatives(
             subject=log,
