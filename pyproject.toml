@@ -1,6 +1,6 @@
 [project]
 name = "itassets"
-version = "2.4.61"
+version = "2.4.62"
 description = "DBCA IT assets (both physical and knowledge-based) management system"
 authors = [
   { name = "Ashley Felton", email = "ashley.felton@dbca.wa.gov.au" },
@@ -9,22 +9,22 @@ authors = [
 license = "Apache-2.0"
 requires-python = ">=3.13,<4.0"
 dependencies = [
-  "django==5.2.12",
+  "django==5.2.13",
   "psycopg[binary,pool]==3.3.3",
   "dbca-utils==2.1.5",
   "django-extensions==4.1",
   "python-dotenv==1.2.2",
   "dj-database-url==3.1.2",
-  "gunicorn==25.1.0",
+  "gunicorn[fast]==25.3.0",
   "unicodecsv==0.14.1",
   "python-dateutil==2.9.0",
   "webtemplate-dbca==1.8.3",
-  "requests==2.32.5",
+  "requests==2.33.1",
   "msal==1.35.1",
   "whitenoise[brotli]==6.12.0",
   "xlsxwriter==3.2.9",
-  "sentry-sdk[django]==2.54.0",
-  "redis==7.3.0",
+  "sentry-sdk[django]==2.58.0",
+  "redis==7.4.0",
   "django-storages[azure]==1.14.6",
   "paramiko==4.0.0",
 ]
@@ -35,7 +35,7 @@ dev = [
   "ipdb>=0.13.13",
   "mixer>=7.2.2",
   "pre-commit>=4.5.1",
-  "coverage>=7.13.4",
+  "coverage>=7.13.5",
 ]
 
 # Reference: https://docs.astral.sh/ruff/configuration/

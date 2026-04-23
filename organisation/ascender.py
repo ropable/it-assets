@@ -2,6 +2,7 @@ import logging
 import re
 from collections.abc import Iterator
 from datetime import date, datetime
+from time import sleep
 from typing import List, Literal, Optional
 
 import requests
@@ -13,7 +14,7 @@ from psycopg import Connection, connect, sql
 from itassets.utils import ms_graph_client_token
 from organisation.microsoft_products import MS_PRODUCTS
 from organisation.models import AscenderActionLog, CostCentre, DepartmentUser, DepartmentUserLog, Location
-from organisation.utils import generate_password, ms_graph_get_subscribed_sku, ms_graph_validate_password, title_except
+from organisation.utils import generate_password, ms_graph_get_subscribed_sku, ms_graph_get_user, ms_graph_validate_password, title_except
 
 LOGGER = logging.getLogger("organisation")
 DATE_MAX = date(2049, 12, 31)
@@ -798,6 +799,7 @@ def create_entra_id_user(
         return
 
     # Next, update the user details with additional information.
+    sleep(1)  # Add a delay between calls to the Graph API.
     url = f"https://graph.microsoft.com/v1.0/users/{guid}"
     data = {
         "mail": email,
@@ -838,6 +840,7 @@ def create_entra_id_user(
         return
 
     # Next, set the user manager.
+    sleep(1)  # Add a delay between calls to the Graph API.
     manager_url = f"https://graph.microsoft.com/v1.0/users/{guid}/manager/$ref"
     data = {"@odata.id": f"https://graph.microsoft.com/v1.0/users/{manager.azure_guid}"}
     resp = requests.put(manager_url, headers=headers, json=data)
@@ -865,6 +868,63 @@ def create_entra_id_user(
         return
 
     # Next, add the required licenses to the user.
+    # Repeat the call to get the MS Graph user until the usageLocation value is present, up to a limit.
+    user_has_usage_location = False
+    graph_user = None
+    timestamp = datetime.now()
+    retry_delay = 1
+    for _ in range(10):
+        try:
+            graph_user = ms_graph_get_user(guid, token)
+        except (requests.exceptions.HTTPError, requests.exceptions.RequestException) as exc:
+            graph_user = None
+            response = getattr(exc, "response", None)
+            if response is not None and response.status_code == 429:
+                # Honour `Retry-After` for 429 responses
+                retry_after = response.headers.get("Retry-After")
+                if retry_after:
+                    try:
+                        retry_delay = max(int(retry_after), 1)
+                    except (TypeError, ValueError):
+                        retry_delay = 1
+            LOGGER.warning(
+                f"Transient error querying MS Graph API for user GUID {guid}; retrying in {retry_delay} second(s)",
+                exc_info=True,
+            )
+        else:
+            if graph_user and "usageLocation" in graph_user and graph_user["usageLocation"] == "AU":
+                user_has_usage_location = True
+                break
+        sleep(retry_delay)  # Add a delay between calls to the Graph API.
+        LOGGER.info(f"Repeat query to MS Graph API for user GUID {guid}")
+        timestamp = datetime.now()
+
+    if not user_has_usage_location:
+        # Abort the remaining workflow with an alert notification to admins.
+        log = f"Create new Entra ID user failed at assign license step for {email}, usageLocation field value not set"
+        AscenderActionLog.objects.create(level="WARNING", log=log, ascender_data=job)
+        LOGGER.warning(log)
+        redacted_graph_user = {
+            "id": graph_user["id"],
+            "userPrincipalName": graph_user["userPrincipalName"],
+            "usageLocation": graph_user["usageLocation"],
+            "createdDateTime": graph_user["createdDateTime"],
+        }
+        text_content = f"""Ascender record:\n
+        {job}\n
+        Microsoft Graph API user:\n
+        {redacted_graph_user}\n
+        Query timestamp: {timestamp.isoformat()}"""
+        msg = EmailMultiAlternatives(
+            subject=log,
+            body=text_content,
+            from_email=settings.NOREPLY_EMAIL,
+            to=settings.ADMIN_EMAILS,
+        )
+        msg.send(fail_silently=True)
+        return
+
+    # Assign the required license type via the Graph API.
     url = f"https://graph.microsoft.com/v1.0/users/{guid}/assignLicense"
     if licence_type == "On-premise":
         data = {
