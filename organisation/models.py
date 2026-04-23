@@ -1045,20 +1045,47 @@ class DepartmentUser(models.Model):
                     LOGGER.info("NO ACTION (log only)")
 
         # Manager (source of truth: Ascender)
-        # BUSINESS RULE: for the manager field, Entra ID overwrites synced onprem AD accounts. Therefore we always update manager via Graph API.
-        # Reference: https://dbca.freshservice.com/a/changes/1742
-        manager = None
-        if self.azure_guid and self.azure_ad_data and "manager" in self.azure_ad_data:
+        # Onprem AD users
+        manager_ad = None
+        if self.dir_sync_enabled and self.ad_guid and self.ad_data and "Manager" in self.ad_data:
             # Hard-coded short-circuit business rule: a staff member having the title "DIRECTOR GENERAL"
             # will not have a manager set. Context: the Ascender record for the DG has the DDG set as
             # the 'manager' for payroll certification purposes. We want to avoid setting up a circular
             # management graph in Entra ID.
             if self.title and self.title.upper() == "DIRECTOR GENERAL":
                 self.manager = None
-            elif self.azure_ad_data["manager"] and DepartmentUser.objects.filter(azure_guid=self.azure_ad_data["manager"]["id"]).exists():
-                manager = DepartmentUser.objects.get(azure_guid=self.azure_ad_data["manager"]["id"])
+            elif (
+                self.ad_data["Manager"]
+                and DepartmentUser.objects.filter(active=True, ad_data__DistinguishedName=self.ad_data["Manager"]).exists()
+            ):
+                manager_ad = DepartmentUser.objects.get(ad_data__DistinguishedName=self.ad_data["Manager"])
 
-            if manager and self.manager and manager != self.manager and self.manager.azure_guid:
+            if self.manager != manager_ad:
+                prop = "Manager"
+                change = {
+                    "identity": self.ad_guid,
+                    "property": prop,
+                    "value": self.manager.ad_guid if self.manager else None,
+                }
+                f = BytesIO()
+                f.write(json.dumps(change, indent=2).encode("utf-8"))
+                f.seek(0)
+                if not log_only:
+                    blob = f"onprem_changes/{self.ad_guid}_{prop}.json"
+                    upload_blob(f, container, blob)
+                    LOGGER.info(f"AD SYNC: {self} onprem AD change diff uploaded to blob storage ({prop})")
+                else:
+                    LOGGER.info("NO ACTION (log only)")
+        # Azure (cloud only) AD users
+        elif not self.dir_sync_enabled and self.azure_guid and self.azure_ad_data and "manager" in self.azure_ad_data:
+            # Hard-coded short-circuit business rule: a staff member having the title "DIRECTOR GENERAL"
+            # will not have a manager set. See above.
+            if self.title and self.title.upper() == "DIRECTOR GENERAL":
+                self.manager = None
+            elif self.azure_ad_data["manager"] and DepartmentUser.objects.filter(azure_guid=self.azure_ad_data["manager"]["id"]).exists():
+                manager_ad = DepartmentUser.objects.get(azure_guid=self.azure_ad_data["manager"]["id"])
+
+            if self.manager and self.manager.azure_guid and self.manager != manager_ad:
                 if token:
                     headers = {
                         "Authorization": f"Bearer {token['access_token']}",
