@@ -9,8 +9,11 @@ on:
   push:
     branches:
       - master
+      - dev
     tags:
       - '*'
+  workflow_dispatch:
+
 env:
   # The name of the Docker image to be built and pushed to GitHub Container Registry.
   # The image name will be in the format: ghcr.io/<owner>/<repo>
@@ -214,11 +217,12 @@ jobs:
           images: ${{ env.GHCR_IMAGE }}
           annotations: |
             type=org.opencontainers.image.description,value=${{ github.event.repository.description || 'No description provided' }}
-          # Image tag will be 'latest' for the master branch,
+          # Image tag will be 'latest' for the default branch, 'dev' for the dev branch
           # or else will match the Git tag (semver).
           # https://github.com/docker/metadata-action?tab=readme-ov-file#typesemver
           tags: |
-            type=raw,value=latest,enable=${{ github.ref_name == 'master' }}
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=dev,event=branch,branch=dev
             type=semver,pattern={{version}}
 
       - name: Set up Docker Buildx
