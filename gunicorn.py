@@ -2,7 +2,6 @@
 
 bind = ":8080"
 workers = 4
-worker_connections = 1000  # Max connections per worker
 max_requests = 2048  # Max no of requests a worker will process before restarting
 max_requests_jitter = 256  # Max jitter added to the max_requests setting
 preload_app = True
