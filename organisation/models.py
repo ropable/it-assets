@@ -453,7 +453,7 @@ class DepartmentUser(models.Model):
         if not token:
             token = ms_graph_client_token()
         url = f"https://graph.microsoft.com/v1.0/users/{self.azure_guid}"
-        acct = "onprem" if self.dir_sync_enabled else "cloud"
+        acct = "onprem" if (self.ad_guid and self.ad_data and self.dir_sync_enabled) else "cloud"
         today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)  # We need a datetime object.
 
         # active (source of truth: Ascender).
@@ -468,7 +468,7 @@ class DepartmentUser(models.Model):
         ):
             job_end_date = datetime.strptime(self.ascender_data["job_end_date"], "%Y-%m-%d")
 
-            # Where a user has a job which in which the job end date is in the past, deactivate the user's AD account.
+            # Where a user has a job which in which the job end date is in the past, deactivate the user's account.
             if job_end_date < today:
                 log = f"{self} job is past end date of {job_end_date.date()}; deactivating their {acct} account"
                 AscenderActionLog.objects.create(level="INFO", log=log, ascender_data=self.ascender_data)
@@ -511,7 +511,7 @@ class DepartmentUser(models.Model):
                             LOGGER.info("NO ACTION (log only)")
 
         # SCENARIO 2: user account has become dormant (no sign-ins for a defined number of days).
-        # Source of truth: Entra ID last interactive sign-in timestamp.
+        # Source of truth: Entra ID last interactive successful sign-in timestamp.
         if self.active and self.get_licence() and self.get_account_dormant():
             # Where a user has an active licenced account that is considered dormant, deactivate the account.
             # Log the action.
