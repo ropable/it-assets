@@ -977,6 +977,20 @@ def create_entra_id_user(
             to=settings.ADMIN_EMAILS,
         )
         msg.send(fail_silently=True)
+        # Clean up the partially-provisioned account so it does not remain as an orphaned Entra ID user.
+        try:
+            delete_url = f"https://graph.microsoft.com/v1.0/users/{guid}"
+            delete_resp = requests.delete(delete_url, headers=headers)
+            delete_resp.raise_for_status()
+            cleanup_log = (
+                f"Create new Entra ID user cleanup due to license assign failure: deleted orphaned Entra ID account {guid} ({email})"
+            )
+            AscenderActionLog.objects.create(level="INFO", log=cleanup_log, ascender_data=job)
+            LOGGER.info(cleanup_log)
+        except:
+            cleanup_log = f"Create new Entra ID user cleanup due to license assign failure: failed to delete orphaned Entra ID account {guid} ({email}), manual deletion required"
+            AscenderActionLog.objects.create(level="WARNING", log=cleanup_log, ascender_data=job)
+            LOGGER.exception(cleanup_log)
         return
 
     LOGGER.info(f"New Entra ID account created from Ascender data ({email})")

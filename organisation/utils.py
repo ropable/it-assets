@@ -365,7 +365,7 @@ def ms_graph_site_storage_summary(ds: Optional[str] = None, token: Optional[Dict
 
 
 def ms_graph_list_signins_user(azure_guid: str, top: int = 5, token: dict | None = None) -> List[Dict]:
-    """Query the Microsoft Graph API for most-recent interactive sign-in events for an Entra ID user account.
+    """Query the Microsoft Graph API for most-recent interactive, successful sign-in events for an Entra ID user account.
     Reference: https://learn.microsoft.com/en-us/graph/api/resources/signin
     """
     if not token:
@@ -378,7 +378,7 @@ def ms_graph_list_signins_user(azure_guid: str, top: int = 5, token: dict | None
     params = {
         "$orderby": "createdDateTime desc",
         "$top": top,
-        "$filter": f"(userId eq '{azure_guid}' and isInteractive eq true)",
+        "$filter": f"(userId eq '{azure_guid}' and isInteractive eq true and status/errorCode eq 0)",
     }
     url = "https://graph.microsoft.com/v1.0/auditLogs/signIns"
     resp = requests.get(url, headers=headers, params=params)
