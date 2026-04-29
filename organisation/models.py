@@ -468,7 +468,7 @@ class DepartmentUser(models.Model):
         ):
             job_end_date = datetime.strptime(self.ascender_data["job_end_date"], "%Y-%m-%d")
 
-            # Where a user has a job which in which the job end date is in the past, deactivate the user's account.
+            # Where a user has a job in which the job end date is in the past, deactivate the user's account.
             if job_end_date < today:
                 log = f"{self} job is past end date of {job_end_date.date()}; deactivating their {acct} account"
                 AscenderActionLog.objects.create(level="INFO", log=log, ascender_data=self.ascender_data)
